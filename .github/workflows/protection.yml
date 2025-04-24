@@ -5,6 +5,7 @@ on:
     paths:
       - 'ruta/al/archivo/protegido.ext'  
 
+
 jobs:
   check-protected-file:
     runs-on: ubuntu-latest
