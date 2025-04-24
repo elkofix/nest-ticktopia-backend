@@ -1,24 +1,28 @@
-name: Required Reviewer Check
+name: Verificar revisión de usuario específico
+
 on:
-  pull_request_review:
-    types: [submitted]
+  pull_request:
+    types: [opened, edited, reopened, synchronize, review_requested, ready_for_review]
 
 jobs:
-  verify-review:
+  check-reviewer:
     runs-on: ubuntu-latest
+    if: github.event.pull_request.draft == false
     steps:
-      - name: Check reviewer
-        id: check_reviewer
-        uses: actions/github-script@v6
+      - name: Obtener revisiones del PR
+        id: reviews
+        uses: octokit/request-action@v2.x
         with:
-          script: |
-            const requiredReviewers = ['elkofix']; // Agrega los usuarios requeridos
-            const reviewer = context.payload.review.user.login;
-            
-            if (requiredReviewers.includes(reviewer)) {
-              core.setOutput('approved', 'true');
-              return `✅ Review aprobada por ${reviewer}`;
-            } else {
-              core.setOutput('approved', 'false');
-              return `⚠️ Review de ${reviewer} no es requerida`;
-            }
+          route: GET /repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}/reviews
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Validar aprobación de usuario específico
+        run: |
+          echo "${{ steps.reviews.outputs.data }}" > reviews.json
+          if jq -e '.[] | select(.user.login == "usuario-revisor" and .state == "APPROVED")' reviews.json > /dev/null; then
+            echo "El PR fue aprobado por usuario-revisor."
+          else
+            echo "❌ El PR no ha sido aprobado por usuario-revisor. Falla el job."
+            exit 1
+          fi
