@@ -1,0 +1,36 @@
+name: Required Reviewer Check
+on:
+  pull_request_review:
+    types: [submitted]
+
+jobs:
+  verify-review:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check reviewer
+        id: check_reviewer
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const requiredReviewers = ['elkofix']; // Agrega los usuarios requeridos
+            const reviewer = context.payload.review.user.login;
+            
+            if (requiredReviewers.includes(reviewer)) {
+              core.setOutput('approved', 'true');
+              return `✅ Review aprobada por ${reviewer}`;
+            } else {
+              core.setOutput('approved', 'false');
+              return `⚠️ Review de ${reviewer} no es requerida`;
+            }
+      
+      - name: Add comment if not approved
+        if: steps.check_reviewer.outputs.approved == 'false'
+        uses: actions/github-script@v6
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: 'Se requiere una review de uno de los usuarios autorizados: user1, user2'
+            });

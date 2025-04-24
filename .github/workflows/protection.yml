@@ -1,0 +1,19 @@
+name: Verificar cambios en archivo protegido
+
+on:
+  pull_request:
+    paths:
+      - 'ruta/al/archivo/protegido.ext'  
+
+jobs:
+  check-protected-file:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verificar cambios en el archivo protegido
+        run: |
+          if [ -n "$(git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }} | grep 'ruta/al/archivo/protegido.ext')" ]; then
+            echo "::error::El archivo protegido 'ruta/al/archivo/protegido.ext' ha sido modificado. No se permiten cambios en este archivo."
+            exit 1
+          else
+            echo "El archivo protegido no ha sido modificado."
+          fi
