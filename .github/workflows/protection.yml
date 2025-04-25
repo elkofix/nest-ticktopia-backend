@@ -23,12 +23,12 @@ jobs:
 
       - name: Check for sensitive files
         run: |
-          SENSITIVE_FILES=(".github/workflows/protection.yml" ".github/workflows/pull_request.yml")
+          SENSITIVE_FILES=(".github/workflows/protections.yml" ".github/workflows/pull_requests.yml")
           for file in "${SENSITIVE_FILES[@]}"; do
             if grep -q "^$file$" changed.txt; then
               echo "❌ Sensitive file modified: $file"
               exit 1
             fi
-            
+
           done
           echo "✅ No sensitive files modified"
