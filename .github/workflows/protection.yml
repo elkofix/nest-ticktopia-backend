@@ -29,5 +29,6 @@ jobs:
               echo "❌ Sensitive file modified: $file"
               exit 1
             fi
+            
           done
           echo "✅ No sensitive files modified"
