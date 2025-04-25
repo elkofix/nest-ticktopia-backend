@@ -3,8 +3,8 @@ name: Check Sensitive Files
 
 on:
   pull_request:
-    types: [opened, synchronize]
-
+    branches: [main]
+    
 jobs:
   check-files:
     runs-on: ubuntu-latest

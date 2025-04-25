@@ -1,9 +1,11 @@
 name: Check PR Reviewer
 
-
 on:
   pull_request_review:
     types: [submitted]
+    branches:
+      - main
+
 
 jobs:
   check-reviewer:
