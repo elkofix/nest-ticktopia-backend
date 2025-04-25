@@ -1,24 +1,19 @@
-name: Required Reviewer Check
+name: Check PR Reviewer
+
 on:
   pull_request_review:
     types: [submitted]
 
 jobs:
-  verify-review:
+  check-reviewer:
     runs-on: ubuntu-latest
     steps:
-      - name: Check reviewer
-        id: check_reviewer
-        uses: actions/github-script@v6
-        with:
-          script: |
-            const requiredReviewers = ['elkofix']; // Agrega los usuarios requeridos
-            const reviewer = context.payload.review.user.login;
-            
-            if (requiredReviewers.includes(reviewer)) {
-              core.setOutput('approved', 'true');
-              return `✅ Review aprobada por ${reviewer}`;
-            } else {
-              core.setOutput('approved', 'false');
-              return `⚠️ Review de ${reviewer} no es requerida`;
-            }
+      - name: Fail if reviewer is not elkofix
+        run: |
+          echo "Review submitted by: ${{ github.actor }}"
+          if [[ "${{ github.actor }}" != "elkofix" ]]; then
+            echo "Only 'elkofix' can submit PR reviews. Failing."
+            exit 1
+          else
+            echo "Review is from 'elkofix'. All good."
+          fi
