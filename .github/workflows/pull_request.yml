@@ -12,7 +12,7 @@ jobs:
       - name: Fail if reviewer is not elkofix
         run: |
           echo "Review submitted by: ${{ github.actor }}"
-          if [[ "${{ github.actor }}" != "elkofix" ]]; then
+          if [[ "${{ github.actor }}" != "valentapi23" ]]; then
             echo "Only 'elkofix' can submit PR reviews. Failing."
             exit 1
           else
