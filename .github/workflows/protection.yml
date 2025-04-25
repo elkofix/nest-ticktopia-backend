@@ -1,28 +1,32 @@
-name: Verificar cambios en archivo protegido
+name: Check Sensitive Files
 
 on:
   pull_request:
-    paths:
-      - '.github/workflows/protection.yml'  
-      - '.github/workflows/pull_request.yml'  
+    types: [opened, synchronize]
 
 jobs:
-  check-protected-file:
+  check-files:
     runs-on: ubuntu-latest
     steps:
-      - name: Verificar cambios en el archivo protegido
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0  # importante para comparar con el base
+
+      - name: Get changed files
+        id: changed-files
         run: |
-          if [ -n "$(git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }} | grep '.github/workflows/pull_request.yml')" ]; then
-            echo "::error::El archivo protegido 'ruta/al/archivo/protegido.ext' ha sido modificado. No se permiten cambios en este archivo."
-            exit 1
-          else
-            echo "El archivo protegido no ha sido modificado."
-          fi
-      - name: Verificar cambios en el archivo protegido
+          git fetch origin ${{ github.event.pull_request.base.ref }}
+          git diff --name-only origin/${{ github.event.pull_request.base.ref }}...HEAD > changed.txt
+          cat changed.txt
+
+      - name: Check for sensitive files
         run: |
-          if [ -n "$(git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }} | grep '.github/workflows/protection.yml'')" ]; then
-            echo "::error::El archivo protegido 'ruta/al/archivo/protegido.ext' ha sido modificado. No se permiten cambios en este archivo."
-            exit 1
-          else
-            echo "El archivo protegido no ha sido modificado."
-          fi
+          SENSITIVE_FILES=(".github/workflows/protection.yml" .github/workflows/pull_request.yml")
+          for file in "${SENSITIVE_FILES[@]}"; do
+            if grep -q "^$file$" changed.txt; then
+              echo "❌ Sensitive file modified: $file"
+              exit 1
+            fi
+          done
+          echo "✅ No sensitive files modified"
